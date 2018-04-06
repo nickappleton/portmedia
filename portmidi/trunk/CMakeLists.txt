@@ -24,6 +24,14 @@ else(UNIX)
 endif(UNIX)
 
 if(FALSE)
+  # Slightly concerning
+  if(APPLE)
+    set(CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX10.6.sdk CACHE 
+        PATH "-isysroot parameter for compiler")
+    set(CMAKE_C_FLAGS "-mmacosx-version-min=10.6" CACHE 
+        STRING "needed in conjunction with CMAKE_OSX_SYSROOT" FORCE)
+  endif(APPLE)
+
   # These just should never be set.
   set(CMAKE_CXX_FLAGS_MINSIZEREL "" CACHE INTERNAL "Unused")
   set(CMAKE_SHARED_LINKER_FLAGS_MINSIZEREL "" CACHE INTERNAL "Unused")
@@ -88,7 +96,6 @@ endif(MSVC AND WIN32)
 
 add_subdirectory(pm_common)
 add_subdirectory(pm_test)
-add_subdirectory(pm_dylib)
 
 # Cannot figure out how to make an xcode Java application with CMake
 add_subdirectory(pm_java)

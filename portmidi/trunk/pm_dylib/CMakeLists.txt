@@ -3,12 +3,10 @@
 # set the build directory for libraries to be in portmidi, not in 
 #    portmidi/pm_dylib
 if(APPLE OR WIN32)
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
   # set the build directory for .dylib libraries
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
-  # the "archive" output directory says where to put portmidi.lib, the
-  # static part of the lib/dll pair:
-  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 
   # the first time CMake configures, save off CMake's built-in flags
   if(NOT DEFAULT_DEBUG_FLAGS)
@@ -59,7 +57,6 @@ if(UNIX)
 
     set(JAVAVM_LIB "${FRAMEWORK_PATH}/JavaVM.framework")
     set(JAVA_INCLUDE_PATHS ${JAVAVM_LIB}/Headers)
-    set(INSTALL_NAME_DIR "/usr/local/lib")
     message(STATUS "SYSROOT: " ${CMAKE_OSX_SYSROOT})
   else(APPLE)
     # LINUX settings...
@@ -89,15 +86,13 @@ if(UNIX)
   endif(APPLE)
 else(UNIX)
   if(WIN32)
-    # /MDd is multithread debug DLL, /MTd is multithread debug
-    # /MD is multithread DLL, /MT is multithread 
-    
     include(FindJNI)
-    # note: should use JAVA_JVM_LIB_PATH, but it is not set properly
-    set(JAVAVM_LIB ${JAVA_INCLUDE_PATH}/../lib/jvm.lib)
 
     set(JAVA_INCLUDE_PATHS ${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2})
     # message(STATUS "JAVA_INCLUDE_PATHS: " ${JAVA_INCLUDE_PATHS})
+
+    # note: should use JAVA_JVM_LIB_PATH, but it is not set properly
+    set(JAVAVM_LIB ${JAVA_INCLUDE_PATH}/../lib/jvm.lib)
 
     set(WINSRC pmwin pmwinmm)
     prepend_path(LIBSRC ../pm_win/ ${WINSRC})
