@@ -84,10 +84,6 @@ if(UNIX)
   endif(APPLE)
 else(UNIX)
   if(WIN32)
-    # /MDd is multithread debug DLL, /MTd is multithread debug
-    # /MD is multithread DLL, /MT is multithread. Change to static:
-    include(../pm_win/static.cmake)
-    
     include(FindJNI)
 
     set(JAVA_INCLUDE_PATHS ${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2})

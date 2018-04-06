@@ -40,6 +40,21 @@ set(CMAKE_OSX_ARCHITECTURES i386 ppc x86_64 CACHE STRING "change to needed archi
 
 PROJECT(portmidi)
 
+if(MSVC AND WIN32)
+  foreach(flag_var
+    CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+    CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO
+    CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+    CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
+    if(${flag_var} MATCHES "/MD")
+      string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+    endif(${flag_var} MATCHES "/MD")
+  endforeach(flag_var)
+ 
+  message(STATUS 
+    "Note: overriding CMAKE_*_FLAGS_* to use Visual C static multithread library")
+endif(MSVC)
+
 if(UNIX)
   # Problem: if there was an old Debug build and you change
   #  CMAKE_BUILD_TYPE to Release, then the OUTPUT_DIRECTORY's will
