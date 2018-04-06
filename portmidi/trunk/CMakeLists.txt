@@ -23,20 +23,50 @@ else(UNIX)
       "Semicolon-separate list of supported configuration types")
 endif(UNIX)
 
-#set(CMAKE_RELATIVE_PATHS ON CACHE STRING "avoid absolute paths" FORCE)
+if(FALSE)
+  # These just should never be set.
+  set(CMAKE_CXX_FLAGS_MINSIZEREL "" CACHE INTERNAL "Unused")
+  set(CMAKE_SHARED_LINKER_FLAGS_MINSIZEREL "" CACHE INTERNAL "Unused")
+  set(CMAKE_MODULE_LINKER_FLAGS_MINSIZEREL "" CACHE INTERNAL "Unused")
+  set(CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "" CACHE INTERNAL "Unused")
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "" CACHE INTERNAL "Unused")
+  set(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO "" CACHE INTERNAL "Unused")
+  set(CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO "" CACHE INTERNAL "Unused")
+  set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "" CACHE INTERNAL "Unused")
 
-# Clear out the built-in C++ compiler and link flags for each of the 
-# unused configurations.
-set(CMAKE_CXX_FLAGS_MINSIZEREL "" CACHE INTERNAL "Unused")
-set(CMAKE_SHARED_LINKER_FLAGS_MINSIZEREL "" CACHE INTERNAL "Unused")
-set(CMAKE_MODULE_LINKER_FLAGS_MINSIZEREL "" CACHE INTERNAL "Unused")
-set(CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "" CACHE INTERNAL "Unused")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "" CACHE INTERNAL "Unused")
-set(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO "" CACHE INTERNAL "Unused")
-set(CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO "" CACHE INTERNAL "Unused")
-set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "" CACHE INTERNAL "Unused")
+  # This is removed because it should be specified by the user when they
+  # create project files. It breaks builds on modern platforms.
+  set(CMAKE_OSX_ARCHITECTURES i386 ppc x86_64 CACHE STRING "change to needed architecture for a smaller library" FORCE)
 
-set(CMAKE_OSX_ARCHITECTURES i386 ppc x86_64 CACHE STRING "change to needed architecture for a smaller library" FORCE)
+  # This was likely an issue with the CMakeCache given the comment. If a
+  # different type of library is required, either the CMakeCache should be
+  # deleted or (better yet) build it in a new build tree.
+  if(UNIX)
+    # Problem: if there was an old Debug build and you change
+    #  CMAKE_BUILD_TYPE to Release, then the OUTPUT_DIRECTORY's will
+    #  still be Debug. Try to fix this by checking if the DIRECTORY's
+    #  look wrong, and if so, force them to the defaults:
+    if(CMAKE_BUILD_TYPE MATCHES "Debug")
+      set(BAD_DIR "Release")
+    else(CMAKE_BUILD_TYPE MATCHES "Debug")
+      set(BAD_DIR "Debug")
+    endif(CMAKE_BUILD_TYPE MATCHES "Debug")
+    # use library as reference -- if you give it a non-BAD_DIR location
+    # then every other path is left alone
+    if(CMAKE_LIBRARY_OUTPUT_DIRECTORY MATCHES ${BAD_DIR})
+      set(CMAKE_RUNTIME_OUTPUT_DIRECTORY 
+          ${CMAKE_CACHEFILE_DIR}/${CMAKE_BUILD_TYPE}
+          CACHE STRING "executables go here" FORCE)
+      set(CMAKE_LIBRARY_OUTPUT_DIRECTORY 
+          ${CMAKE_CACHEFILE_DIR}/${CMAKE_BUILD_TYPE}
+          CACHE STRING "libraries go here" FORCE)
+      set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY 
+          ${CMAKE_CACHEFILE_DIR}/${CMAKE_BUILD_TYPE}
+          CACHE STRING "libraries go here" FORCE)
+    endif(CMAKE_LIBRARY_OUTPUT_DIRECTORY MATCHES ${BAD_DIR})
+  endif(UNIX)
+
+endif()
 
 PROJECT(portmidi)
 
@@ -53,38 +83,12 @@ if(MSVC AND WIN32)
  
   message(STATUS 
     "Note: overriding CMAKE_*_FLAGS_* to use Visual C static multithread library")
-endif(MSVC)
+endif(MSVC AND WIN32)
 
-if(UNIX)
-  # Problem: if there was an old Debug build and you change
-  #  CMAKE_BUILD_TYPE to Release, then the OUTPUT_DIRECTORY's will
-  #  still be Debug. Try to fix this by checking if the DIRECTORY's
-  #  look wrong, and if so, force them to the defaults:
-  if(CMAKE_BUILD_TYPE MATCHES "Debug")
-    set(BAD_DIR "Release")
-  else(CMAKE_BUILD_TYPE MATCHES "Debug")
-    set(BAD_DIR "Debug")
-  endif(CMAKE_BUILD_TYPE MATCHES "Debug")
-  # use library as reference -- if you give it a non-BAD_DIR location
-  # then every other path is left alone
-  if(CMAKE_LIBRARY_OUTPUT_DIRECTORY MATCHES ${BAD_DIR})
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY 
-        ${CMAKE_CACHEFILE_DIR}/${CMAKE_BUILD_TYPE}
-        CACHE STRING "executables go here" FORCE)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY 
-        ${CMAKE_CACHEFILE_DIR}/${CMAKE_BUILD_TYPE}
-        CACHE STRING "libraries go here" FORCE)
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY 
-        ${CMAKE_CACHEFILE_DIR}/${CMAKE_BUILD_TYPE}
-        CACHE STRING "libraries go here" FORCE)
-  endif(CMAKE_LIBRARY_OUTPUT_DIRECTORY MATCHES ${BAD_DIR})
-endif(UNIX)
 
 include_directories(pm_common porttime)
 add_subdirectory(pm_common)
-
 add_subdirectory(pm_test)
-
 add_subdirectory(pm_dylib)
 
 # Cannot figure out how to make an xcode Java application with CMake
