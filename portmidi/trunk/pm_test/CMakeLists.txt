@@ -10,6 +10,7 @@ macro(make_a_test name)
   add_executable(${name} ${name}.c)
   target_link_libraries(${name} portmidi-static ${PM_NEEDED_LIBS})
   add_dependencies(${name} portmidi-static)
+  target_include_directories(${name} PRIVATE ../porttime)
 endmacro(make_a_test)
 
 make_a_test(test)

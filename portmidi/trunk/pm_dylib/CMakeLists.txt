@@ -116,6 +116,8 @@ list(APPEND LIBSRC ${SHARED_PATHS})
 add_library(portmidi-dynamic SHARED ${LIBSRC})
 set_target_properties(portmidi-dynamic PROPERTIES OUTPUT_NAME "portmidi")
 target_link_libraries(portmidi-dynamic ${PM_NEEDED_LIBS})
+target_include_directories(portmidi-dynamic PUBLIC ../pm_common)
+target_include_directories(portmidi-dynamic PRIVATE ../porttime)
 
 # install the libraries (Linux and Mac OS X command line)
 if(UNIX)
