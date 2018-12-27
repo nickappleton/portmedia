@@ -2,7 +2,7 @@
 # Roger B. Dannenberg
 # 20 Sep 2009
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.0)
 
 project(portmidi)
 
@@ -95,7 +95,7 @@ endif()
 add_library(portmidi-static ${LIBSRC})
 set_target_properties(portmidi-static PROPERTIES OUTPUT_NAME "portmidi_s")
 target_link_libraries(portmidi-static ${PM_NEEDED_LIBS})
-target_include_directories(portmidi-static PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>/pm_common")
+target_include_directories(portmidi-static PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/pm_common>")
 target_include_directories(portmidi-static PRIVATE ./porttime)
 set_property(TARGET portmidi-static APPEND_STRING PROPERTY COMPILE_FLAGS_DEBUG " -DPM_CHECK_ERRORS=1 -DDEBUG")
 if(UNIX AND NOT APPLE)
@@ -107,7 +107,7 @@ endif()
 add_library(portmidi-dynamic SHARED ${LIBSRC})
 set_target_properties(portmidi-dynamic PROPERTIES OUTPUT_NAME "portmidi")
 target_link_libraries(portmidi-dynamic ${PM_NEEDED_LIBS})
-target_include_directories(portmidi-dynamic PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>/pm_common")
+target_include_directories(portmidi-dynamic PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/pm_common>")
 target_include_directories(portmidi-dynamic PRIVATE ./porttime)
 set_property(TARGET portmidi-dynamic APPEND_STRING PROPERTY COMPILE_FLAGS_DEBUG " -DPM_CHECK_ERRORS=1 -DDEBUG")
 if(UNIX AND NOT APPLE)
@@ -135,14 +135,26 @@ else()
 endif()
 
 # install the libraries (Linux and Mac OS X command line)
+include(CMakePackageConfigHelpers)
+configure_package_config_file(cmake_support/portmidiConfig.cmake.in ${CMAKE_BINARY_DIR}/cmake/portmidi/portmidiConfig.cmake
+  INSTALL_DESTINATION "lib/cmake/portmidi"
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO)
+write_basic_package_version_file(${CMAKE_BINARY_DIR}/cmake/portmidi/portmidiConfigVersion.cmake
+  VERSION 1
+  COMPATIBILITY SameMajorVersion)
+export(TARGETS ${PORTMIDI_TARGETS} FILE "${PROJECT_BINARY_DIR}/cmake/portmidi/portmidiTargets.cmake")
 install(TARGETS ${PORTMIDI_TARGETS}
   EXPORT portmidi-targets
+  RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
-install(FILES ./pm_common/portmidi.h ./porttime/porttime.h DESTINATION include)
 install(EXPORT portmidi-targets DESTINATION lib/cmake/portmidi FILE "portmidiTargets.cmake")
-
-export(TARGETS ${PORTMIDI_TARGETS} FILE "${PROJECT_BINARY_DIR}/portmidiTargets.cmake")
+install(FILES ./pm_common/portmidi.h ./porttime/porttime.h DESTINATION include)
+install(FILES README.txt DESTINATION share/doc/portmidi)
+install(FILES license.txt DESTINATION share/doc/portmidi)
+install(FILES "${CMAKE_BINARY_DIR}/cmake/portmidi/portmidiConfig.cmake"
+              "${CMAKE_BINARY_DIR}/cmake/portmidi/portmidiConfigVersion.cmake"
+  DESTINATION "lib/cmake/portmidi")
 
 add_subdirectory(pm_test)
 
