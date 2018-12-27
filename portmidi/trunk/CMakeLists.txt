@@ -140,9 +140,9 @@ install(TARGETS ${PORTMIDI_TARGETS}
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
 install(FILES ./pm_common/portmidi.h ./porttime/porttime.h DESTINATION include)
-install(EXPORT portmidi-targets DESTINATION lib/portmidi)
+install(EXPORT portmidi-targets DESTINATION lib/cmake/portmidi FILE "portmidiTargets.cmake")
 
-export(TARGETS ${PORTMIDI_TARGETS} FILE "${PROJECT_BINARY_DIR}/portmidi-targets.cmake")
+export(TARGETS ${PORTMIDI_TARGETS} FILE "${PROJECT_BINARY_DIR}/portmidiTargets.cmake")
 
 add_subdirectory(pm_test)
 

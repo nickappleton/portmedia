@@ -13,7 +13,11 @@ macro(make_a_test name)
   target_include_directories(${name} PRIVATE ../porttime)
 endmacro(make_a_test)
 
-make_a_test(test)
+add_executable(test1 test.c)
+target_link_libraries(test1 portmidi-static ${PM_NEEDED_LIBS})
+add_dependencies(test1 portmidi-static)
+target_include_directories(test1 PRIVATE ../porttime)
+
 make_a_test(midithread)
 make_a_test(midithru)
 make_a_test(sysex)
