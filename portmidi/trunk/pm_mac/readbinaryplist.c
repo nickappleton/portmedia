@@ -123,55 +123,45 @@ memory requested or calls longjmp, so callers don't have to check.
 // memory is aligned to multiples of this; assume malloc automatically
 // aligns to this number and assume this number is > sizeof(void *)
 #define ALIGNMENT 8
-static void *block_list = NULL;
-static char *free_ptr = NULL;
-static char *end_ptr = NULL;
-static jmp_buf abort_parsing;
+#define ALIGNMASK (ALIGNMENT-1u)
+static void    *block_list  = NULL; /* ( pointer to next block ), data */
+static size_t   block_pos;
+static size_t   block_size;
+static jmp_buf  abort_parsing;
 
 static void *allocate(size_t size)
 {
     void *result;
-    if (free_ptr + size > end_ptr) {
-        size_t how_much = BLOCK_SIZE;
-        // align everything to 8 bytes
-        if (size > BLOCK_SIZE - ALIGNMENT) {
-            how_much = size + ALIGNMENT;
-        }
-        result = malloc(how_much);
+    if  (   block_list == NULL
+        ||  block_pos + ((ALIGNMENT - block_pos) & ALIGNMASK) + size > block_size
+        ) {
+        size_t min_block_size = sizeof(void *) + ALIGNMENT + size;
+        size_t act_block_size = (min_block_size > BLOCK_SIZE) ? min_block_size : BLOCK_SIZE;
+        result = malloc(act_block_size);
         if (result == NULL) {
             /* serious problem */
             longjmp(abort_parsing, 1);
         }
         *((void **)result) = block_list;
         block_list = result;
-        free_ptr = ((char *) result) + ALIGNMENT;
-        end_ptr = ((char *) result) + how_much;
+        block_pos  = sizeof(void *);
+        block_size = act_block_size;
     }
     // now, there is enough rooom at free_ptr
-    result = free_ptr;
-    free_ptr += size;
+    block_pos += (ALIGNMENT - block_pos) & ALIGNMASK;
+    result     = ((char *)block_list) + block_pos;
+    block_pos += size;
     return result;
 }
 
 void bplist_free_data()
 {
-    while (block_list) {
+    while (block_list != NULL) {
         void *next = *(void **)block_list;
         free(block_list);
         block_list = next;
     }
-    free_ptr = NULL;
-    end_ptr = NULL;
 }
-
-// layout of trailer -- last 32 bytes in plist data
-    uint8_t unused[6];
-    uint8_t offset_int_size;
-    uint8_t object_ref_size;
-    uint64_t object_count;
-    uint64_t top_level_object;
-    uint64_t offset_table_offset;
-
 
 enum
 {
